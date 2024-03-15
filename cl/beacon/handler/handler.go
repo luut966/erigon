@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/ledgerwatch/erigon-lib/gointerfaces/sentinel"
 	"github.com/ledgerwatch/erigon-lib/kv"
+	"github.com/ledgerwatch/erigon/cl/attestation"
 	"github.com/ledgerwatch/erigon/cl/beacon/beacon_router_configuration"
 	"github.com/ledgerwatch/erigon/cl/beacon/beaconevents"
 	"github.com/ledgerwatch/erigon/cl/beacon/beaconhttp"
@@ -54,12 +55,53 @@ type ApiHandler struct {
 
 	// Validator data structures
 	validatorParams *validator_params.ValidatorParams
+	attestation     *attestation.Attestation
 }
 
-func NewApiHandler(logger log.Logger, genesisConfig *clparams.GenesisConfig, beaconChainConfig *clparams.BeaconChainConfig, indiciesDB kv.RoDB, forkchoiceStore forkchoice.ForkChoiceStorage, operationsPool pool.OperationsPool, rcsn freezeblocks.BeaconSnapshotReader, syncedData *synced_data.SyncedDataManager, stateReader *historical_states_reader.HistoricalStatesReader, sentinel sentinel.SentinelClient, version string, routerCfg *beacon_router_configuration.RouterConfiguration, emitters *beaconevents.Emitters, blobStoage blob_storage.BlobStorage, caplinSnapshots *freezeblocks.CaplinSnapshots, validatorParams *validator_params.ValidatorParams, attestationProducer attestation_producer.AttestationDataProducer) *ApiHandler {
-	return &ApiHandler{logger: logger, validatorParams: validatorParams, o: sync.Once{}, genesisCfg: genesisConfig, beaconChainCfg: beaconChainConfig, indiciesDB: indiciesDB, forkchoiceStore: forkchoiceStore, operationsPool: operationsPool, blockReader: rcsn, syncedData: syncedData, stateReader: stateReader, randaoMixesPool: sync.Pool{New: func() interface{} {
-		return solid.NewHashVector(int(beaconChainConfig.EpochsPerHistoricalVector))
-	}}, sentinel: sentinel, version: version, routerCfg: routerCfg, emitters: emitters, blobStoage: blobStoage, caplinSnapshots: caplinSnapshots, attestationProducer: attestationProducer}
+func NewApiHandler(
+	logger log.Logger,
+	genesisConfig *clparams.GenesisConfig,
+	beaconChainConfig *clparams.BeaconChainConfig,
+	indiciesDB kv.RoDB,
+	forkchoiceStore forkchoice.ForkChoiceStorage,
+	operationsPool pool.OperationsPool,
+	rcsn freezeblocks.BeaconSnapshotReader,
+	syncedData *synced_data.SyncedDataManager,
+	stateReader *historical_states_reader.HistoricalStatesReader,
+	sentinel sentinel.SentinelClient,
+	version string,
+	routerCfg *beacon_router_configuration.RouterConfiguration,
+	emitters *beaconevents.Emitters,
+	blobStoage blob_storage.BlobStorage,
+	caplinSnapshots *freezeblocks.CaplinSnapshots,
+	validatorParams *validator_params.ValidatorParams,
+	attestationProducer attestation_producer.AttestationDataProducer,
+	attestation *attestation.Attestation,
+) *ApiHandler {
+	return &ApiHandler{
+		logger:          logger,
+		validatorParams: validatorParams,
+		o:               sync.Once{},
+		genesisCfg:      genesisConfig,
+		beaconChainCfg:  beaconChainConfig,
+		indiciesDB:      indiciesDB,
+		forkchoiceStore: forkchoiceStore,
+		operationsPool:  operationsPool,
+		blockReader:     rcsn,
+		syncedData:      syncedData,
+		stateReader:     stateReader,
+		randaoMixesPool: sync.Pool{New: func() interface{} {
+			return solid.NewHashVector(int(beaconChainConfig.EpochsPerHistoricalVector))
+		}},
+		sentinel:            sentinel,
+		version:             version,
+		routerCfg:           routerCfg,
+		emitters:            emitters,
+		blobStoage:          blobStoage,
+		caplinSnapshots:     caplinSnapshots,
+		attestationProducer: attestationProducer,
+		attestation:         attestation,
+	}
 }
 
 func (a *ApiHandler) Init() {
