@@ -7,7 +7,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/ledgerwatch/erigon-lib/gointerfaces/sentinel"
 	"github.com/ledgerwatch/erigon-lib/kv"
-	"github.com/ledgerwatch/erigon/cl/attestation"
 	"github.com/ledgerwatch/erigon/cl/beacon/beacon_router_configuration"
 	"github.com/ledgerwatch/erigon/cl/beacon/beaconevents"
 	"github.com/ledgerwatch/erigon/cl/beacon/beaconhttp"
@@ -19,6 +18,7 @@ import (
 	"github.com/ledgerwatch/erigon/cl/phase1/forkchoice"
 	"github.com/ledgerwatch/erigon/cl/pool"
 	"github.com/ledgerwatch/erigon/cl/validator/attestation_producer"
+	"github.com/ledgerwatch/erigon/cl/validator/committee_subscription"
 	"github.com/ledgerwatch/erigon/cl/validator/validator_params"
 	"github.com/ledgerwatch/erigon/turbo/snapshotsync/freezeblocks"
 	"github.com/ledgerwatch/log/v3"
@@ -55,7 +55,7 @@ type ApiHandler struct {
 
 	// Validator data structures
 	validatorParams *validator_params.ValidatorParams
-	attestation     *attestation.Attestation
+	committeeSub    *committee_subscription.CommitteeSubscribeMgmt
 }
 
 func NewApiHandler(
@@ -76,7 +76,7 @@ func NewApiHandler(
 	caplinSnapshots *freezeblocks.CaplinSnapshots,
 	validatorParams *validator_params.ValidatorParams,
 	attestationProducer attestation_producer.AttestationDataProducer,
-	attestation *attestation.Attestation,
+	committeeSub *committee_subscription.CommitteeSubscribeMgmt,
 ) *ApiHandler {
 	return &ApiHandler{
 		logger:          logger,
@@ -100,7 +100,7 @@ func NewApiHandler(
 		blobStoage:          blobStoage,
 		caplinSnapshots:     caplinSnapshots,
 		attestationProducer: attestationProducer,
-		attestation:         attestation,
+		committeeSub:        committeeSub,
 	}
 }
 
